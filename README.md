@@ -1,9 +1,12 @@
-# Aaallt
+# Mount Olympus
 
-Run locally with: `go run .`
+A landing page for my personal home server *Olympus*, for displaying links to the applications available on the local network. The application simply generates a static `HTML` page which can then be served (see [Dockerfile](./Dockerfile).
 
-The different versions of Aaallt, with different links, are loaded dynamically depending on the subdomain and loads the corresponding YAML file with the same name in [links/](links/). When testing you can access each link tree at `<file-name>.localhost:3000` or simply `localhost:3000` for default Aaallt.
+Run locally with: `go run .` and open the `index.html` file, or run via Docker/Podman to also serve the page on `8080`.
 
-[links/systems.yml](links/systems.yml) are the default links loaded for every subdomain.
+```sh
+podman build -t mount_olympus .
+podman run --init -p 8080:8080 localhost/mount_olympus:latest
+```
 
-To create a new version/link tree, just create a new YAML file in [links/](links/) with the same format and point a subdomain to this system.
+[links.yml](./links.yml) is expected to be available in the directory as the source of links.

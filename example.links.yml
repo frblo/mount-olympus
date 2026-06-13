@@ -1,0 +1,19 @@
+links:
+  - name:        Datasektionen.se
+    description: Hitta all information och nyheter om sektionen
+    url:         https://datasektionen.se
+    icon:        https://datasektionen.se/icons/favicon-96x96.png
+    color:       "#ff9800"
+
+  - name:        Calypso
+    description: Skriv och posta nyheter till hemsidan
+    url:         https://calypso.datasektionen.se
+    icon:        https://calypso.datasektionen.se/favicon-96x96.png
+    color:       "#ec407a"
+
+  - name:        dbuggen
+    description: Når ut till hundratals genom allt förutom TV
+    url:         https://dbu.gg
+    icon:        https://dbu.gg/favicon/favicon-96x96.png
+    color:       "#282828"
+    iconstyle:   "border-radius: 50%"

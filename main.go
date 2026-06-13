@@ -1,17 +1,18 @@
 package main
 
 import (
-	"embed"
-	"encoding/json"
-	"gopkg.in/yaml.v3"
+	"bufio"
+	_ "embed"
 	"html/template"
-	"io/fs"
-	"log/slog"
-	"net/http"
 	"os"
-	"slices"
-	"strings"
+
+	"gopkg.in/yaml.v3"
 )
+
+type page struct {
+	Links []link
+	Css   template.CSS
+}
 
 type link struct {
 	Name        string
@@ -20,102 +21,45 @@ type link struct {
 	Color       string
 	Icon        string
 	IconStyle   template.CSS
-	Sensitive   bool
 }
 
-type page struct {
-	Title       string
-	BeforeLinks template.HTML
-	AfterLinks  template.HTML
-	Links       []link
-}
+//go:embed static/index.css
+var cssFile string
 
-//go:embed static/*
-var assets embed.FS
+//go:embed links.yml
+var linksData []byte
 
-//go:embed links/*
-var linksFolder embed.FS
-
-//go:embed index.html
+//go:embed template.html
 var indexFile string
 
-func getLinks() map[string]page {
-	linkFiles, err := linksFolder.ReadDir("links")
+func getPage() page {
+	var p page
+	err := yaml.Unmarshal(linksData, &p)
 	if err != nil {
 		panic(err)
 	}
 
-	links := make(map[string]page)
-	for _, e := range linkFiles {
-		data, err := linksFolder.ReadFile("links/" + e.Name())
-		if err != nil {
-			panic(err)
-		}
+	p.Css = template.CSS(cssFile)
 
-		var l page
-		err = yaml.Unmarshal(data, &l)
-		if err != nil {
-			panic(err)
-		}
-		links[strings.TrimSuffix(e.Name(), ".yml")] = l
-	}
-
-	return links
+	return p
 }
 
 func main() {
-	darkmodeURL, ok := os.LookupEnv("DARKMODE_URL")
-	if !ok {
-		darkmodeURL = "https://darkmode.datasektionen.se/"
-	}
-
-	links := getLinks()
+	page := getPage()
 
 	indexTemplate, err := template.New("index.html").Parse(indexFile)
 	if err != nil {
 		panic(err)
 	}
-	http.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
-		res, err := http.Get(darkmodeURL)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			slog.Error("Failed fetching darkmode status", "error", err)
-		}
-		var darkmode bool
-		if err := json.NewDecoder(res.Body).Decode(&darkmode); err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			slog.Error("Failed parsing darkmode status", "error", err)
-		}
 
-		whichLinks := strings.Split(r.Host, ".")[0]
-		linksToShow, ok := links[whichLinks]
-		if !ok {
-			linksToShow = links["aaallt"]
-			linksToShow.Title = "Hoppsan, det där systemet fanns tydligen inte!"
-			w.WriteHeader(404)
-		}
-		if darkmode {
-			linksToShow.Links = slices.DeleteFunc(append([]link{}, linksToShow.Links...), func(l link) bool {
-				return l.Sensitive
-			})
-		}
-
-		if err := indexTemplate.Execute(w, linksToShow); err != nil {
-			http.Error(w, "Failed rendering template", http.StatusInternalServerError)
-			slog.Error("Failed rendering template", "error", err)
-		}
-	})
-
-	fs, err := fs.Sub(assets, "static")
+	f, err := os.Create("index.html")
 	if err != nil {
 		panic(err)
 	}
-	http.Handle("/", http.FileServer(http.FS(fs)))
+	defer f.Close()
 
-	port, ok := os.LookupEnv("PORT")
-	if !ok {
-		port = "3000"
+	w := bufio.NewWriter(f)
+	if err := indexTemplate.Execute(w, page); err != nil {
+		panic(err)
 	}
-	slog.Info("Started", "port", port)
-	http.ListenAndServe(":"+port, nil)
 }

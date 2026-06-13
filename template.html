@@ -3,30 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aaallt</title>
-    <link rel="stylesheet" href="/index.css" lang="text/css">
+    <title>Olympus</title>
+    <style>{{ .Css }}</style>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" lang="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,300,700,400italic,700italic,900" lang="text/css">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
 </head>
 <body>
-    <div id="methone-container-replace"></div>
-    <script>
-        window.methone_conf = {
-            system_name: "Aaallt",
-            color_scheme: "orange",
-        }
-    </script>
-    <script src="https://methone.datasektionen.se/bar.js"></script>
     <header>
         <div>
-            <h1>{{ .Title }}</h1>
+            <h1>Olympus</h1>
         </div>
     </header>
     <main>
-        {{ .BeforeLinks }}
         <div id="systems">
             {{ range .Links }}
                 <a href="{{ .URL }}">
@@ -38,13 +26,8 @@
                 </a>
             {{ end }}
         </div>
-        {{ .AfterLinks }}
     </main>
-    <footer>
-        <p>
-            Vänliga hälsningar, <br>
-            <strong>Systemgruppen</strong>
-        </p>
-    </footer>
 </body>
 </html>
+
+

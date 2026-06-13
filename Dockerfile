@@ -1,11 +1,12 @@
 ARG GO_VERSION=1.22
 ARG ALPINE_VERSION=3.19
+ARG BUSYBOX_VERSION=1.38
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build
 
 WORKDIR /src
 
-COPY go.* ./
+COPY go.mod go.sum* ./
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build/ \
@@ -15,17 +16,19 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build/ \
-    GCO_ENABLED=0 go build -o /app .
+    CGO_ENABLED=0 go build -o /usr/local/bin/yaml2html .
 
-FROM alpine:${ALPINE_VERSION}
+RUN /usr/local/bin/yaml2html
 
-ARG UID=10001
-RUN adduser --disabled-password --gecos "" --home /nonexistent --shell "/sbin/nologin" \
-    --no-create-home --uid "${UID}" user
-USER user
+FROM busybox:${BUSYBOX_VERSION}-musl AS serve
 
-COPY --from=build /app /bin/
+RUN adduser -D staticuser
+USER staticuser
 
-EXPOSE 3000
+WORKDIR /home/staticuser
 
-ENTRYPOINT [ "/bin/app" ]
+COPY --from=build /src/index.html ./html/index.html
+
+EXPOSE 8080
+
+CMD ["httpd", "-f", "-p", "8080", "-h", "/home/staticuser/html"]
