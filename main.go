@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	_ "embed"
 	"html/template"
 	"os"
@@ -26,15 +25,17 @@ type link struct {
 //go:embed static/index.css
 var cssFile string
 
-//go:embed links.yml
-var linksData []byte
-
 //go:embed template.html
 var indexFile string
 
 func getPage() page {
+	data, err := os.ReadFile("links.yml")
+	if err != nil {
+		panic(err)
+	}
+
 	var p page
-	err := yaml.Unmarshal(linksData, &p)
+	err = yaml.Unmarshal(data, &p)
 	if err != nil {
 		panic(err)
 	}
@@ -58,8 +59,7 @@ func main() {
 	}
 	defer f.Close()
 
-	w := bufio.NewWriter(f)
-	if err := indexTemplate.Execute(w, page); err != nil {
+	if err := indexTemplate.Execute(f, page); err != nil {
 		panic(err)
 	}
 }

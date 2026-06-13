@@ -1,4 +1,4 @@
-module github.com/datasektionen/aaallt2
+module github.com/frblo/mount-olympus
 
 go 1.22.1
 
